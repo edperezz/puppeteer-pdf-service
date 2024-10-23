@@ -1,41 +1,32 @@
 const express = require('express');
-const puppeteer = require('puppeteer');
 const bodyParser = require('body-parser');
+const puppeteer = require('puppeteer');
 
 const app = express();
-const port = process.env.PORT || 3000;
+app.use(bodyParser.json());
 
-app.use(bodyParser.json({ limit: '10mb' }));
+app.post('/', async (req, res) => {
+  const { html } = req.body;
 
-app.post('/generate-pdf', async (req, res) => {
-    const { htmlContent } = req.body;
+  if (!html) {
+    return res.status(400).send('HTML content is required');
+  }
 
-    if (!htmlContent) {
-        return res.status(400).send({ error: 'HTML content is required!' });
-    }
+  try {
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    await page.setContent(html);
+    const pdf = await page.pdf({ format: 'A4' });
+    await browser.close();
 
-    try {
-        const browser = await puppeteer.launch({
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
-        });
-        const page = await browser.newPage();
-        await page.setContent(htmlContent);
-        const pdfBuffer = await page.pdf({ format: 'A4' });
-
-        await browser.close();
-
-        res.set({
-            'Content-Type': 'application/pdf',
-            'Content-Disposition': 'attachment; filename=report.pdf',
-        });
-
-        res.send(pdfBuffer);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send({ error: 'Failed to generate PDF' });
-    }
+    res.contentType("application/pdf");
+    res.send(pdf);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error generating PDF');
+  }
 });
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+app.listen(8080, () => {
+  console.log('Server is running on port 8080');
 });
