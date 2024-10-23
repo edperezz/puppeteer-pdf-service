@@ -1,0 +1,13 @@
+{
+  "name": "puppeteer-pdf-service",
+  "version": "1.0.0",
+  "description": "Service to generate PDF from HTML using Puppeteer",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "puppeteer": "^13.0.0"
+  }
+}
